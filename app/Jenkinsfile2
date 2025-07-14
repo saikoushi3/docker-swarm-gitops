@@ -1,0 +1,27 @@
+pipeline {
+    agent any
+
+    environment {
+        SWARM_MANAGER_IP = '13.219.90.152'    //'<your_swarm_manager_ip>'
+        SSH_CREDENTIALS  = 'key-pair' // ID of your SSH private key credential in Jenkins
+    }
+
+    triggers {
+        pollSCM('H/5 * * * *') // Polls the Git repository every 5 minutes
+    }
+
+    stages {
+        stage('Deploy to Swarm') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY')]) {
+                        sh """
+                            scp -o StrictHostKeyChecking=no -i ${SSH_KEY} app/docker-compose.yml ubuntu@${SWARM_MANAGER_IP}:/home/ubuntu/
+                            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@${SWARM_MANAGER_IP} 'docker stack deploy -c docker-compose.yml mystack'
+                        """
+                    }
+                }
+            }
+        }
+    }
+}
