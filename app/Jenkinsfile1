@@ -1,0 +1,42 @@
+// app/Jenkinsfile
+
+pipeline {
+    agent any
+
+    environment {
+        SWARM_MANAGER_IP = '13.219.90.152'      //'<your_swarm_manager_ip>'
+        SSH_CREDENTIALS  = 'key-pair'
+    }
+
+    triggers {
+        // This replaces the pollSCM trigger
+        // It tells Jenkins to trigger a build when it receives a POST request to the webhook URL
+        // You can add more specific filtering here if needed
+        GenericTrigger(
+            genericVariables: [
+                [key: 'ref', value: '$.ref']
+            ],
+            // Only trigger for pushes to the 'master' or 'main' branch
+            filterText: '$ref',
+            filterExpression: 'refs/heads/(main|master)',
+            printPostContent: true,
+            printContributedVariables: true,
+            tokenCredentialId: 'webhook' // The ID of the secret text credential
+        )
+    }
+
+    stages {
+        stage('Deploy to Swarm') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: SSH_CREDENTIALS, keyFileVariable: 'SSH_KEY')]) {
+                        sh """
+                            scp -o StrictHostKeyChecking=no -i ${SSH_KEY} app/docker-compose.yml ubuntu@${SWARM_MANAGER_IP}:/home/ubuntu/
+                            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@${SWARM_MANAGER_IP} 'docker stack deploy -c docker-compose.yml mystack'
+                        """
+                    }
+                }
+            }
+        }
+    }
+}

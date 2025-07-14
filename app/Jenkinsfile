@@ -1,28 +1,13 @@
-// app/Jenkinsfile
-
 pipeline {
     agent any
 
     environment {
-        SWARM_MANAGER_IP = '13.219.90.152'      //'<your_swarm_manager_ip>'
-        SSH_CREDENTIALS  = 'key-pair'
+        SWARM_MANAGER_IP = '13.219.90.152'    //'<your_swarm_manager_ip>'
+        SSH_CREDENTIALS  = 'key-pair' // ID of your SSH private key credential in Jenkins
     }
 
     triggers {
-        // This replaces the pollSCM trigger
-        // It tells Jenkins to trigger a build when it receives a POST request to the webhook URL
-        // You can add more specific filtering here if needed
-        GenericTrigger(
-            genericVariables: [
-                [key: 'ref', value: '$.ref']
-            ],
-            // Only trigger for pushes to the 'master' or 'main' branch
-            filterText: '$ref',
-            filterExpression: 'refs/heads/(main|master)',
-            printPostContent: true,
-            printContributedVariables: true,
-            tokenCredentialId: 'webhook' // The ID of the secret text credential
-        )
+        pollSCM('H/5 * * * *') // Polls the Git repository every 5 minutes
     }
 
     stages {
