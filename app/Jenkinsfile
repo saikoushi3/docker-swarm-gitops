@@ -18,10 +18,7 @@ pipeline {
                         sh """
                                   scp -o StrictHostKeyChecking=no app/docker-compose.yml ubuntu@${SWARM_MANAGER_IP}:/home/ubuntu/
                                  ssh -o StrictHostKeyChecking=no ubuntu@${SWARM_MANAGER_IP} '
-                                     docker stack deploy -c /home/ubuntu/docker-compose.yml mystack
-                                     '
-                            //scp -o StrictHostKeyChecking=no -i ${SSH_KEY} app/docker-compose.yml ubuntu@${SWARM_MANAGER_IP}:/home/ubuntu/
-                           // ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ubuntu@${SWARM_MANAGER_IP} 'docker stack deploy -c docker-compose.yml mystack'
+                                     docker stack deploy -c /home/ubuntu/docker-compose.yml mystack '
                         """
                     }
                 }
